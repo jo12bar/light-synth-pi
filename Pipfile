@@ -4,6 +4,7 @@ verify_ssl = true
 url = "https://pypi.python.org/simple"
 
 [packages]
+pybluez = "*"
 
 [requires]
 python_version = "3.5"
