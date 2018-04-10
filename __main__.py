@@ -32,24 +32,25 @@ advertise_service(
         profiles = [SERIAL_PORT_PROFILE]
         )
 
-print("Waiting for connection on RFCOMM chanel %d" % port)
-bluesend_sock, bluesend_info = bt_sock.accept()
-print("Accepted connection from ", bluesend_info)
+while True:
+    print("Waiting for connection on RFCOMM channel %d" % port)
+    bluesend_sock, bluesend_info = bt_sock.accept()
+    print("Accepted connection from ", bluesend_info)
 
-try:
-    while True:
-        data = bluesend_sock.recv(MAX_BT_BUFFER_SIZE)
+    try:
+        while True:
+            data = bluesend_sock.recv(MAX_BT_BUFFER_SIZE)
         
-        if (len(data) == 0):
-            break
+            if (len(data) == 0):
+                break
 
-        print("Recieved [%s]" % data)
-except IOError:
-    pass
+            print("Recieved [%s]" % data)
+    except IOError:
+        pass
 
-print("Disconnected.")
+    print("Disconnected.")
+    bluesend_sock.close()
 
-bluesend_sock.close()
 bt_sock.close()
 
 print("All done!")
