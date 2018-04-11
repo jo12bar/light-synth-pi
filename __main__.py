@@ -44,7 +44,9 @@ while True:
             if (len(data) == 0):
                 break
 
-            print("Recieved [%s]" % data)
+            # The list of doubles recieved from Bluesend, converted from a binary blob.
+            soundFrame = memoryview(data).cast('d').tolist()
+            print("Recieved: {}".format(soundFrame))
     except IOError:
         pass
 
