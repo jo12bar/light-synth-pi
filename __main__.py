@@ -17,6 +17,9 @@ from uuid import uuid4
 # Maximum size, in bytes, that a buffer being recieved from Bluesend can be.
 MAX_BT_BUFFER_SIZE = 4096
 
+# Sample rate, in Hz
+sample_rate = 0.0
+
 bt_sock = BluetoothSocket(RFCOMM)
 bt_sock.bind(("", PORT_ANY))
 bt_sock.listen(1)
@@ -37,6 +40,9 @@ while True:
     print("Waiting for connection on RFCOMM channel %d" % port)
     bluesend_sock, bluesend_info = bt_sock.accept()
     print("Accepted connection from ", bluesend_info)
+
+    sample_rate = np.frombuffer(bluesend_sock.recv(MAX_BT_BUFFER_SIZE), dtype=np.float64)[0]
+    print("Sample rate: {}".format(sample_rate))
 
     try:
         while True:
