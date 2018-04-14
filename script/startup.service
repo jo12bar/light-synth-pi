@@ -1,0 +1,12 @@
+[Unit]
+Description=jo12bar/light-synth-pi - Sync Neopixels to synth data from Bluetooth!
+After=multi-user.target
+
+[Service]
+Type=idle
+WorkingDirectory=/home/pi/light-synth-pi
+ExecStartPre=+/bin/hciconfig hci0 piscan
+ExecStart=+/usr/local/bin/pipenv run python /home/pi/light-synth-pi/__main__.py > /home/pi/light-synth-pi/main.log 2>&1
+
+[Install]
+WantedBy=multi-user.target
