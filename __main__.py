@@ -14,7 +14,7 @@ from bluetooth import *
 from uuid import uuid4
 
 # Maximum size, in bytes, that a buffer being recieved from Bluesend can be.
-MAX_BT_BUFFER_SIZE = 1024
+MAX_BT_BUFFER_SIZE = 4096
 
 bt_sock = BluetoothSocket(RFCOMM)
 bt_sock.bind(("", PORT_ANY))
@@ -43,6 +43,15 @@ while True:
         
             if (len(data) == 0):
                 break
+
+            # When memoryview casts the bytearray to a double, it expects that
+            # it's in 8-byte chunks. Bluesend sometimes sends partial chunks of
+            # data to save on processing. This is non-configurable (part of
+            # Windows). But, math says that we can just keep adding data until
+            # it's length is a multiple of eight, and the array of doubles can
+            # still be used for DSP calculations.
+            while (len(data) % 8 != 0):
+                data = b"".join([data, bluesend_sock.recv(MAX_BT_BUFFER_SIZE)])
 
             # The list of doubles recieved from Bluesend, converted from a binary blob.
             soundFrame = memoryview(data).cast('d').tolist()
