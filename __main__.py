@@ -11,6 +11,7 @@
 # on https://github.com/pybluez/pybluez/blob/master/examples/simple/rfcomm-server.py
 
 from bluetooth import *
+import numpy as np
 from uuid import uuid4
 
 # Maximum size, in bytes, that a buffer being recieved from Bluesend can be.
@@ -54,7 +55,7 @@ while True:
                 data = b"".join([data, bluesend_sock.recv(MAX_BT_BUFFER_SIZE)])
 
             # The list of doubles recieved from Bluesend, converted from a binary blob.
-            soundFrame = memoryview(data).cast('d').tolist()
+            soundFrame = np.frombuffer(data, dtype=np.float64)
             print("Recieved: {}".format(soundFrame))
     except IOError:
         pass
