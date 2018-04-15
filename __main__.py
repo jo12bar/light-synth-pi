@@ -12,6 +12,7 @@
 
 from bluetooth import *
 import numpy as np
+import scipy.signal as signal
 from uuid import uuid4
 
 # Maximum size, in bytes, that a buffer being recieved from Bluesend can be.
@@ -19,6 +20,26 @@ MAX_BT_BUFFER_SIZE = 4096
 
 # Sample rate, in Hz
 sample_rate = 0.0
+
+def butter_bandpass(lowcut, highcut, fs, order=5):
+    """
+    Generates a Butterworth bandpass filter given a sampling rate in Hz.
+    Based off of scipy-cookbook.readthedocs.io/items/ButterworthBandpass.html.
+    """
+    nyq = 0.5 * fs
+    low = lowcut / nyq
+    high = highcut / nyq
+    b, a = signal.butter(order, [low, high], btype='band')
+    return b, a
+
+def butterworth_bandpass_filter(data, lowcut, highcut, fs, order=5):
+    """
+    Filter frequencies in the data array using a butterworth bandpass filter
+    at a given sample rate.
+    """
+    b, a = butter_bandpass(lowcut, highcut, fs, order=order)
+    y = signal.lfilter(b, a, data)
+    return y
 
 bt_sock = BluetoothSocket(RFCOMM)
 bt_sock.bind(("", PORT_ANY))
@@ -63,6 +84,15 @@ while True:
             # The list of doubles recieved from Bluesend, converted from a binary blob.
             soundFrame = np.frombuffer(data, dtype=np.float64)
             print("Recieved: {}".format(soundFrame))
+
+            low_filtered = butterworth_bandpass_filter(soundFrame, 20., 150., sample_rate)
+            print("- Low filtered: {}".format(low_filtered))
+            
+            mid_filtered = butterworth_bandpass_filter(soundFrame, 142., 800., sample_rate)
+            print("- Mid filtered: {}".format(mid_filtered))
+
+            high_filtered = butterworth_bandpass_filter(soundFrame, 750., 4500., sample_rate)
+            print("- High filtered: {}".format(high_filtered))
     except IOError:
         pass
 
