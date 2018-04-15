@@ -72,6 +72,20 @@ def overall_signal_power(data):
     overall_power = p.sum()
     return overall_power
 
+def scale(in_low, in_high, out_low, out_high, x):
+    """
+    Scale a number from an input range to an output range.
+    """
+    numerator = (out_high - out_low) * (x - in_low)
+    denominator = in_high - in_low
+    return (numerator / denominator) + out_low
+
+def clamp(low, high, x):
+    """
+    Clamps a number to the interval [low, high]
+    """
+    return low if x < low else (high if x > high else x)
+
 bt_sock = BluetoothSocket(RFCOMM)
 bt_sock.bind(("", PORT_ANY))
 bt_sock.listen(1)
@@ -129,6 +143,12 @@ while True:
             mid_power = overall_signal_power(mid_filtered)
             high_power = overall_signal_power(high_filtered)
             print("- Low power: {} dB, Mid power: {} dB, High power: {} dB".format(low_power, mid_power, high_power))
+
+            # Lower notes generally have more power, so we need to account for that when scaling.
+            low_norm = clamp(0, 255, int(scale(0., 0.75, 0., 255., low_power)))
+            mid_norm = clamp(0, 255, int(scale(0., 0.5, 0., 255., mid_power)))
+            high_norm = clamp(0, 255, int(scale(0., 0.25, 0., 255., high_power)))
+            print("- Low norm: {}, Mid norm: {}, High norm: {}".format(low_norm, mid_norm, high_norm))
 
     except IOError:
         pass
