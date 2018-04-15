@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "fc700de1f2636453ffed24292c132ce013926e312fc8cc2f5546b37ede034afb"
+            "sha256": "70f297c3f4c1026c2dd4fcc0ea14d9e3c2b38f2f49ffeb38f2f41a97ba5e6f2a"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -16,6 +16,14 @@
         ]
     },
     "default": {
+        "gpiozero": {
+            "hashes": [
+                "sha256:1ea5b582ceaf98b33914c60916a56651d8b187e33642aa77b15df33909a228c8",
+                "sha256:b4b074e56dea12c21b05e6feef792719a392a245f5e685bc56be3dc2546f8609"
+            ],
+            "index": "pypi",
+            "version": "==1.4.1"
+        },
         "numpy": {
             "hashes": [
                 "sha256:0739146eaf4985962f07c62f7133aca89f3a600faac891ce6c7f3a1e2afe5272",
@@ -45,6 +53,14 @@
             "index": "pypi",
             "version": "==1.14.2"
         },
+        "pigpio": {
+            "hashes": [
+                "sha256:38bdc1b4d58898e7b4a69de3b0d90e8e8ccd851ac7d03e30791769475ffd941f",
+                "sha256:be1480aecf7c8aba9c92d2846ae153ad4c7e89ae188b28e4bcc579c3bc30e36b"
+            ],
+            "index": "pypi",
+            "version": "==1.40.post1"
+        },
         "pybluez": {
             "hashes": [
                 "sha256:15f7deeedf1e1ef06be88a457e8cd69c61e6a621914b082f64644e20a58f8589",
@@ -56,6 +72,13 @@
             ],
             "index": "pypi",
             "version": "==0.22"
+        },
+        "rpi.gpio": {
+            "hashes": [
+                "sha256:a5fc0eb5e401963b6c0a03650da6b42c4005f02d962b81241d96c98d0a578516"
+            ],
+            "index": "pypi",
+            "version": "==0.6.3"
         },
         "scipy": {
             "hashes": [
