@@ -41,6 +41,37 @@ def butterworth_bandpass_filter(data, lowcut, highcut, fs, order=5):
     y = signal.lfilter(b, a, data)
     return y
 
+def overall_signal_power(data):
+    """
+    Computes the overall power (in dB) of the passed-in signal.
+    (Based off of samcarcagno.altervista.ord/blog/basic-sound-processing-python/)
+    """
+    n = len(data)
+    p = np.fft.fft(data) # Take the Fourier transform.
+
+    # Get info about the magnitude of the frequency components by taking the
+    # absolute value of the Fourier transform.
+    nUniquePts = int(np.ceil((n + 1) / 2.0))
+    p = p[0:nUniquePts]
+    p = np.abs(p)
+
+    # Scale by the number of points so that the magnitude does not depend on the
+    # length of the signal or it's sampling frequency.
+    p = p / float(n)
+
+    # Sqaure to get the power.
+    p = p**2
+
+    # Double to keep the same energy, as we dropped half the FFT earlier.
+    # Odd nfft should exclude the Nyquist point.
+    if n % 2 == 0:
+        p[1:len(p) - 1] = p[1:len(p) - 1] * 2
+    else:
+        p[1:len(p)] = p[1:len(p)] * 2
+
+    overall_power = p.sum()
+    return overall_power
+
 bt_sock = BluetoothSocket(RFCOMM)
 bt_sock.bind(("", PORT_ANY))
 bt_sock.listen(1)
@@ -93,6 +124,12 @@ while True:
 
             high_filtered = butterworth_bandpass_filter(soundFrame, 750., 4500., sample_rate)
             print("- High filtered: {}".format(high_filtered))
+
+            low_power = overall_signal_power(low_filtered)
+            mid_power = overall_signal_power(mid_filtered)
+            high_power = overall_signal_power(high_filtered)
+            print("- Low power: {} dB, Mid power: {} dB, High power: {} dB".format(low_power, mid_power, high_power))
+
     except IOError:
         pass
 
