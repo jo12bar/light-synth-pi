@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "70f297c3f4c1026c2dd4fcc0ea14d9e3c2b38f2f49ffeb38f2f41a97ba5e6f2a"
+            "sha256": "a3af52bcf5a66f199f6c1b535f593f1e304afd5b9355002a94fddf8c8a55dd73"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -72,6 +72,14 @@
             ],
             "index": "pypi",
             "version": "==0.22"
+        },
+        "pyserial": {
+            "hashes": [
+                "sha256:6e2d401fdee0eab996cf734e67773a0143b932772ca8b42451440cfed942c627",
+                "sha256:e0770fadba80c31013896c7e6ef703f72e7834965954a78e71a3049488d4d7d8"
+            ],
+            "index": "pypi",
+            "version": "==3.4"
         },
         "rpi.gpio": {
             "hashes": [

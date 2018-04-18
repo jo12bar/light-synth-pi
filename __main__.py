@@ -13,12 +13,19 @@
 from bluetooth import *
 import gpiozero
 import numpy as np
+import serial
 import subprocess
 import scipy.signal as signal
 from uuid import uuid4
 
 # Maximum size, in bytes, that a buffer being recieved from Bluesend can be.
 MAX_BT_BUFFER_SIZE = 4096
+
+# Address of the serial tty of the connected Arduino
+ARDUINO_SERIAL_DEVICE_LOCATION = "/dev/ttyUSB0"
+
+# Baud rate for the Arduino
+ARDUINO_BAUD_RATE = 9600
 
 # Sample rate, in Hz
 sample_rate = 0.0
@@ -107,6 +114,8 @@ shutoff_button.when_pressed = shutoff_pressed
 shutoff_button.when_released = shutoff_released
 shutoff_led.on()
 
+arduino = serial.Serial(ARDUINO_SERIAL_DEVICE_LOCATION, ARDUINO_BAUD_RATE)
+
 bt_sock = BluetoothSocket(RFCOMM)
 bt_sock.bind(("", PORT_ANY))
 bt_sock.listen(1)
@@ -170,6 +179,8 @@ while True:
             mid_norm = clamp(0, 255, int(scale(0., 0.5, 0., 255., mid_power)))
             high_norm = clamp(0, 255, int(scale(0., 0.25, 0., 255., high_power)))
             print("- Low norm: {}, Mid norm: {}, High norm: {}".format(low_norm, mid_norm, high_norm))
+
+            arduino.write("{:02X}{:02X}{:02X}".format(low_norm, mid_norm, high_norm).encode("ascii"))
 
     except IOError:
         pass
