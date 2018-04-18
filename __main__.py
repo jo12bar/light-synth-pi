@@ -11,7 +11,9 @@
 # on https://github.com/pybluez/pybluez/blob/master/examples/simple/rfcomm-server.py
 
 from bluetooth import *
+import gpiozero
 import numpy as np
+import subprocess
 import scipy.signal as signal
 from uuid import uuid4
 
@@ -20,6 +22,10 @@ MAX_BT_BUFFER_SIZE = 4096
 
 # Sample rate, in Hz
 sample_rate = 0.0
+
+# Shutoff button & LED
+shutoff_button = gpiozero.Button(23)
+shutoff_led = gpiozero.LED(24)
 
 def butter_bandpass(lowcut, highcut, fs, order=5):
     """
@@ -85,6 +91,21 @@ def clamp(low, high, x):
     Clamps a number to the interval [low, high]
     """
     return low if x < low else (high if x > high else x)
+
+def shutoff_pressed():
+    print("Shutoff button pressed!")
+    shutoff_led.off()
+
+def shutoff_released():
+    print("Shutoff button released!")
+    print("Shutting down...")
+    shutoff_led.on()
+    shutoff_led.blink(on_time=0.5, off_time=0.5)
+    subprocess.run("sudo shutdown -h now", shell=True)
+
+shutoff_button.when_pressed = shutoff_pressed
+shutoff_button.when_released = shutoff_released
+shutoff_led.on()
 
 bt_sock = BluetoothSocket(RFCOMM)
 bt_sock.bind(("", PORT_ANY))
