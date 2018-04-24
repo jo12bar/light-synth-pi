@@ -7,8 +7,8 @@
 # Currently, just dumps all recieved packets to stdout.
 # TODO: Make this work gooder!
 #
-# Bluetooth stuff based
-# on https://github.com/pybluez/pybluez/blob/master/examples/simple/rfcomm-server.py
+# Bluetooth stuff based on
+# https://github.com/pybluez/pybluez/blob/master/examples/simple/rfcomm-server.py
 
 from bluetooth import *
 import gpiozero
@@ -34,6 +34,7 @@ sample_rate = 0.0
 shutoff_button = gpiozero.Button(23)
 shutoff_led = gpiozero.LED(24)
 
+
 def butter_bandpass(lowcut, highcut, fs, order=5):
     """
     Generates a Butterworth bandpass filter given a sampling rate in Hz.
@@ -45,6 +46,7 @@ def butter_bandpass(lowcut, highcut, fs, order=5):
     b, a = signal.butter(order, [low, high], btype='band')
     return b, a
 
+
 def butterworth_bandpass_filter(data, lowcut, highcut, fs, order=5):
     """
     Filter frequencies in the data array using a butterworth bandpass filter
@@ -54,13 +56,14 @@ def butterworth_bandpass_filter(data, lowcut, highcut, fs, order=5):
     y = signal.lfilter(b, a, data)
     return y
 
+
 def overall_signal_power(data):
     """
     Computes the overall power (in dB) of the passed-in signal.
     (Based off of samcarcagno.altervista.ord/blog/basic-sound-processing-python/)
     """
     n = len(data)
-    p = np.fft.fft(data) # Take the Fourier transform.
+    p = np.fft.fft(data)  # Take the Fourier transform.
 
     # Get info about the magnitude of the frequency components by taking the
     # absolute value of the Fourier transform.
@@ -85,6 +88,7 @@ def overall_signal_power(data):
     overall_power = p.sum()
     return overall_power
 
+
 def scale(in_low, in_high, out_low, out_high, x):
     """
     Scale a number from an input range to an output range.
@@ -93,15 +97,18 @@ def scale(in_low, in_high, out_low, out_high, x):
     denominator = in_high - in_low
     return (numerator / denominator) + out_low
 
+
 def clamp(low, high, x):
     """
     Clamps a number to the interval [low, high]
     """
     return low if x < low else (high if x > high else x)
 
+
 def shutoff_pressed():
     print("Shutoff button pressed!")
     shutoff_led.off()
+
 
 def shutoff_released():
     print("Shutoff button released!")
@@ -109,6 +116,7 @@ def shutoff_released():
     shutoff_led.on()
     shutoff_led.blink(on_time=0.5, off_time=0.5)
     subprocess.run("sudo shutdown -h now", shell=True)
+
 
 shutoff_button.when_pressed = shutoff_pressed
 shutoff_button.when_released = shutoff_released
@@ -125,25 +133,25 @@ port = bt_sock.getsockname()[1]
 uuid = str(uuid4())
 
 advertise_service(
-        bt_sock,
-        "light-synth-pi",
-        service_id = uuid,
-        service_classes = [uuid, SERIAL_PORT_CLASS],
-        profiles = [SERIAL_PORT_PROFILE]
-        )
+    bt_sock,
+    "light-synth-pi",
+    service_id=uuid,
+    service_classes=[uuid, SERIAL_PORT_CLASS],
+    profiles=[SERIAL_PORT_PROFILE])
 
 while True:
     print("Waiting for connection on RFCOMM channel %d" % port)
     bluesend_sock, bluesend_info = bt_sock.accept()
     print("Accepted connection from ", bluesend_info)
 
-    sample_rate = np.frombuffer(bluesend_sock.recv(MAX_BT_BUFFER_SIZE), dtype=np.float64)[0]
+    sample_rate = np.frombuffer(
+        bluesend_sock.recv(MAX_BT_BUFFER_SIZE), dtype=np.float64)[0]
     print("Sample rate: {}".format(sample_rate))
 
     try:
         while True:
             data = bluesend_sock.recv(MAX_BT_BUFFER_SIZE)
-        
+
             if (len(data) == 0):
                 break
 
@@ -160,27 +168,35 @@ while True:
             soundFrame = np.frombuffer(data, dtype=np.float64)
             print("Recieved: {}".format(soundFrame))
 
-            low_filtered = butterworth_bandpass_filter(soundFrame, 20., 150., sample_rate)
+            low_filtered = butterworth_bandpass_filter(soundFrame, 20., 150.,
+                                                       sample_rate)
             print("- Low filtered: {}".format(low_filtered))
-            
-            mid_filtered = butterworth_bandpass_filter(soundFrame, 142., 800., sample_rate)
+
+            mid_filtered = butterworth_bandpass_filter(soundFrame, 142., 800.,
+                                                       sample_rate)
             print("- Mid filtered: {}".format(mid_filtered))
 
-            high_filtered = butterworth_bandpass_filter(soundFrame, 750., 4500., sample_rate)
+            high_filtered = butterworth_bandpass_filter(
+                soundFrame, 750., 4500., sample_rate)
             print("- High filtered: {}".format(high_filtered))
 
             low_power = overall_signal_power(low_filtered)
             mid_power = overall_signal_power(mid_filtered)
             high_power = overall_signal_power(high_filtered)
-            print("- Low power: {} dB, Mid power: {} dB, High power: {} dB".format(low_power, mid_power, high_power))
+            print("- Low power: {} dB, Mid power: {} dB, High power: {} dB".
+                  format(low_power, mid_power, high_power))
 
-            # Lower notes generally have more power, so we need to account for that when scaling.
+            # Lower notes generally have more power, so we need to account for
+            # that when scaling.
             low_norm = clamp(0, 255, int(scale(0., 0.75, 0., 255., low_power)))
             mid_norm = clamp(0, 255, int(scale(0., 0.5, 0., 255., mid_power)))
-            high_norm = clamp(0, 255, int(scale(0., 0.25, 0., 255., high_power)))
-            print("- Low norm: {}, Mid norm: {}, High norm: {}".format(low_norm, mid_norm, high_norm))
+            high_norm = clamp(0, 255, int(
+                scale(0., 0.25, 0., 255., high_power)))
+            print("- Low norm: {}, Mid norm: {}, High norm: {}".format(
+                low_norm, mid_norm, high_norm))
 
-            arduino.write("{:02X}{:02X}{:02X}".format(low_norm, mid_norm, high_norm).encode("ascii"))
+            arduino.write("{:02X}{:02X}{:02X}".format(
+                low_norm, mid_norm, high_norm).encode("ascii"))
 
     except IOError:
         pass
